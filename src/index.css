@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-serif: 'EB Garamond', Georgia, serif;
+    --font-cinzel: 'Cinzel', serif;
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+}
+
+.font-garamond {
+  font-family: var(--font-serif);
+}
+
+.font-cinzel {
+  font-family: var(--font-cinzel);
+}
+
+.font-sans-ui {
+  font-family: var(--font-sans);
+}
+
+/* 1828 Webster HTML definition styling */
+.webster-content {
+  line-height: 1.75;
+}
+
+.webster-content p {
+  margin-bottom: 0.85rem;
+}
+
+.webster-content b {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.webster-content i {
+  font-style: italic;
+}
+
+.webster-content a.bible {
+  color: #b45309;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+
+.webster-content a.bible:hover {
+  color: #92400e;
+}
+

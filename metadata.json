@@ -1,0 +1,6 @@
+{
+  "name": "KJV Bible & 1828 Webster Dictionary",
+  "description": "Read and listen to the King James Bible with complete navigation, audio read-aloud, instant linking to Noah Webster's 1828 Dictionary, and Strong's Hebrew & Greek Concordance.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
