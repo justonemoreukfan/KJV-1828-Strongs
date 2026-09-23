@@ -199,19 +199,39 @@ export const AudioPlayerBar: React.FC<AudioPlayerBarProps> = ({
               </span>
             </div>
             <select
-              value={selectedVoice?.name || ''}
+              value={selectedVoice?.voiceURI || selectedVoice?.name || ''}
               onChange={(e) => {
-                const v = voices.find((voice) => voice.name === e.target.value);
+                const targetVal = e.target.value;
+                const v = voices.find(
+                  (voice) => (voice.voiceURI || voice.name) === targetVal
+                );
                 if (v) onVoiceChange(v);
               }}
               className="w-full bg-stone-800 border border-stone-700 rounded-lg px-2.5 py-1.5 text-xs text-stone-200 focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer"
             >
-              {voices.map((v) => (
-                <option key={v.name} value={v.name}>
-                  {v.name} ({v.lang})
-                </option>
-              ))}
+              {voices.map((v, idx) => {
+                const voiceKey = v.voiceURI || `${v.name}-${v.lang}-${idx}`;
+                const voiceVal = v.voiceURI || v.name;
+                let label = v.name;
+                if (v.voiceURI && v.voiceURI !== v.name) {
+                  const lowerUri = v.voiceURI.toLowerCase();
+                  if (lowerUri.includes('female') && !label.toLowerCase().includes('female')) {
+                    label += ' (Female)';
+                  } else if (lowerUri.includes('male') && !label.toLowerCase().includes('male')) {
+                    label += ' (Male)';
+                  }
+                }
+                const formattedLang = (v.lang || '').replace(/_/g, '-');
+                return (
+                  <option key={voiceKey} value={voiceVal}>
+                    {label} {formattedLang ? `(${formattedLang})` : ''}
+                  </option>
+                );
+              })}
             </select>
+            <div className="text-[10px] text-stone-500 italic">
+              Android tip: Voices are managed by your device's Text-to-speech engine (Settings &gt; Accessibility &gt; Text-to-speech output).
+            </div>
           </div>
 
           <div className="flex items-center justify-between pt-1 border-t border-stone-800/80">

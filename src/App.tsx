@@ -146,7 +146,13 @@ export default function App() {
     stop: stopAudio,
     nextVerse: nextAudioVerse,
     previousVerse: prevAudioVerse,
-  } = useSpeech(settings.speechRate, settings.speechPitch, settings.readVerseNumbers);
+  } = useSpeech(
+    settings.speechRate,
+    settings.speechPitch,
+    settings.readVerseNumbers,
+    settings.speechVoiceName,
+    (voiceId) => updateSettings({ speechVoiceName: voiceId })
+  );
 
   // Synchronize readVerseNumbers if setting changed
   useEffect(() => {
@@ -612,7 +618,7 @@ export default function App() {
           }}
           onVoiceChange={(v) => {
             setSelectedVoice(v);
-            updateSettings({ speechVoiceName: v.name });
+            updateSettings({ speechVoiceName: v.voiceURI || v.name });
           }}
           onToggleReadVerseNumbers={(val) => {
             updateSettings({ readVerseNumbers: val });

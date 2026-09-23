@@ -4,7 +4,8 @@ A beautiful, completely self-contained Scripture study application combining the
 
 100% Free • 100% Offline • No Sign-ups • No Ads • No Paid API Subscriptions
 
-**Created Date**: September 11, 2026 • **Last Modified Date**: September 11, 2026
+🌐 **Live Published Web Edition**: [https://kjv-bible-1828-webster-dictionary-strong-s.ai.studio/](https://kjv-bible-1828-webster-dictionary-strong-s.ai.studio/)  
+📦 **GitHub Repository**: [https://github.com/justonemoreukfan/KJV-1828-Strongs](https://github.com/justonemoreukfan/KJV-1828-Strongs)
 
 ---
 
@@ -135,6 +136,7 @@ For more detailed guides, check out the specialized guides in this repository:
 
 - 📋 **[INSTALL.md](./INSTALL.md)**: In-depth installation instructions for Windows, macOS, Linux, Raspberry Pi, Docker, and Bun, plus tips on making a one-click desktop shortcut.
 - 🛠️ **[HELP.md](./HELP.md)**: Full technical documentation covering server architecture, memory management, and REST API endpoint specifications.
+- 📐 **[SPEC.md](./SPEC.md)**: Comprehensive architectural specification, corpus parsing rules (preserving supplied italics and marginal note syntax), and Web Speech cross-platform guidelines.
 
 ---
 

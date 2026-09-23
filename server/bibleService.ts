@@ -98,10 +98,14 @@ export class BibleService {
   }
 
   private parseVerse(rawText: string, verseNum: number): BibleVerse {
-    // Remove all marginal notes (e.g. {firmament: Heb. expansion}, {Heb. ...}, {Gr. ...}, etc.)
+    // Remove marginal notes while strictly preserving translator supplied words/italics (e.g. {He that is}, {that is}, {is})
     const textWithoutNotes = rawText
-      .replace(/\{[^{}]*(?:Heb\.|Gr\.|Chald\.|that is|Or,)[^{}]*\}/gi, '')
+      .replace(/«\{[^{}]+\}»/g, '')
       .replace(/\{[^{}]+:[^{}]+\}/g, '')
+      .replace(/\{[^{}]*;\s*(?:or|Heb\.|Gr\.|Chald\.)[^{}]*\}/gi, '')
+      .replace(/\{[^{}]*\bor,\s+[^{}]*\}/gi, '')
+      .replace(/\{[^{}]*\b(?:Heb\.|Gr\.|Chald\.|Chal\.)[^{}]*\}/g, '')
+      .replace(/\{[^{}]*not found in most of the Greek copies[^{}]*\}/gi, '')
       .replace(/\s{2,}/g, ' ')
       .trim();
 

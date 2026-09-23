@@ -23,6 +23,9 @@ import {
   Terminal,
   Copy,
   Check,
+  Github,
+  Globe,
+  GitBranch,
 } from 'lucide-react';
 
 interface AboutViewProps {
@@ -98,6 +101,26 @@ export const AboutView: React.FC<AboutViewProps> = ({
               <Scroll className="w-4 h-4 text-amber-300" />
               <span>Strong's ("Faith")</span>
             </button>
+            <a
+              href="https://github.com/justonemoreukfan/KJV-1828-Strongs"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-900/90 hover:bg-black text-stone-200 border border-stone-700 text-xs sm:text-sm font-semibold transition-all cursor-pointer hover:scale-102"
+            >
+              <Github className="w-4 h-4 text-stone-300" />
+              <span>GitHub Repo</span>
+              <ExternalLink className="w-3.5 h-3.5 text-stone-400" />
+            </a>
+            <a
+              href="https://kjv-bible-1828-webster-dictionary-strong-s.ai.studio/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-900/80 hover:bg-amber-800 text-amber-100 border border-amber-700/60 text-xs sm:text-sm font-semibold transition-all cursor-pointer hover:scale-102"
+            >
+              <Globe className="w-4 h-4 text-amber-300" />
+              <span>Live Web Edition</span>
+              <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
+            </a>
           </div>
         </div>
       </section>
@@ -469,7 +492,137 @@ export const AboutView: React.FC<AboutViewProps> = ({
           </div>
         </section>
 
-        {/* SECTION 5: BACKEND ARCHITECTURE & RUNNING OUTSIDE AI STUDIO */}
+        {/* SECTION 5: PROJECT REPOSITORY & PUBLISHED WEB EDITION */}
+        <section className="space-y-6">
+          <div className="space-y-1">
+            <div className="text-xs font-bold uppercase tracking-widest text-amber-900 flex items-center gap-2">
+              <Github className="w-4 h-4 text-amber-800" />
+              <span>Open-Source Project & Online Access</span>
+            </div>
+            <h2 className="font-cinzel text-xl sm:text-2xl font-bold text-stone-900">
+              Project Repository & Published Online Edition
+            </h2>
+            <p className="text-sm text-stone-600 leading-relaxed max-w-3xl">
+              This application is 100% open-source, free to study, share, and fork. The complete source code, issue tracker, release notes, and documentation are hosted on GitHub, and the live application is published on Google Cloud for instant web access.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* GitHub Card */}
+            <div className="p-5 rounded-2xl bg-white border border-stone-200 shadow-xs flex flex-col justify-between space-y-4 hover:border-amber-700/40 transition-colors">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-xl bg-stone-900 text-white">
+                      <Github className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-stone-900 text-sm">Official GitHub Repository</div>
+                      <div className="text-[11px] text-stone-500 font-mono">justonemoreukfan/KJV-1828-Strongs</div>
+                    </div>
+                  </div>
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                    Open Source
+                  </span>
+                </div>
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  View the full codebase, review technical specifications, report bugs or suggest enhancements via GitHub Issues, and clone or fork the project.
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-2 border-t border-stone-100">
+                <div className="flex items-center gap-2">
+                  <a
+                    href="https://github.com/justonemoreukfan/KJV-1828-Strongs"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold transition-colors shadow-xs"
+                  >
+                    <span>Open GitHub Repository</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                  <button
+                    onClick={() =>
+                      copyToClipboard(
+                        'https://github.com/justonemoreukfan/KJV-1828-Strongs',
+                        'github-link'
+                      )
+                    }
+                    className="p-2 rounded-xl border border-stone-200 hover:bg-stone-100 text-stone-600 transition-colors cursor-pointer"
+                    title="Copy GitHub URL"
+                  >
+                    {copiedCmd === 'github-link' ? (
+                      <Check className="w-4 h-4 text-emerald-600" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+                <div className="text-[11px] font-mono text-stone-500 bg-stone-50 p-2 rounded-lg border border-stone-200/80 truncate">
+                  git clone https://github.com/justonemoreukfan/KJV-1828-Strongs.git
+                </div>
+              </div>
+            </div>
+
+            {/* Published Google Cloud / Web App Card */}
+            <div className="p-5 rounded-2xl bg-white border border-stone-200 shadow-xs flex flex-col justify-between space-y-4 hover:border-amber-700/40 transition-colors">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-xl bg-amber-800 text-white">
+                      <Globe className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-stone-900 text-sm">Published Online Web Edition</div>
+                      <div className="text-[11px] text-stone-500 font-mono">Google Cloud Platform / AI Studio</div>
+                    </div>
+                  </div>
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                    Live Web
+                  </span>
+                </div>
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  The live, publicly accessible instance of this suite. Accessible from any modern browser on Android, iPhone, iPad, Mac, Linux, or PC with zero installation required.
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-2 border-t border-stone-100">
+                <div className="flex items-center gap-2">
+                  <a
+                    href="https://kjv-bible-1828-webster-dictionary-strong-s.ai.studio/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-amber-800 hover:bg-amber-700 text-white text-xs font-semibold transition-colors shadow-xs"
+                  >
+                    <span>Open Published Web Page</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                  <button
+                    onClick={() =>
+                      copyToClipboard(
+                        'https://kjv-bible-1828-webster-dictionary-strong-s.ai.studio/',
+                        'pub-link'
+                      )
+                    }
+                    className="p-2 rounded-xl border border-stone-200 hover:bg-stone-100 text-stone-600 transition-colors cursor-pointer"
+                    title="Copy Published Web Page URL"
+                  >
+                    {copiedCmd === 'pub-link' ? (
+                      <Check className="w-4 h-4 text-emerald-600" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+                <div className="text-[11px] font-mono text-stone-500 bg-stone-50 p-2 rounded-lg border border-stone-200/80 truncate">
+                  https://kjv-bible-1828-webster-dictionary-strong-s.ai.studio/
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION 6: BACKEND ARCHITECTURE & RUNNING OUTSIDE AI STUDIO */}
         <section className="space-y-6">
           <div className="space-y-1">
             <div className="text-xs font-bold uppercase tracking-widest text-amber-900 flex items-center gap-2">

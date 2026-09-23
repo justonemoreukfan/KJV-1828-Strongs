@@ -135,8 +135,13 @@ export const BibleReader: React.FC<BibleReaderProps> = ({
     targetMode: '1828' | 'strongs'
   ) => {
     const verseText = rawVerseText
-      .replace(/\{[^{}]*(?:Heb\.|Gr\.|Chald\.|that is|Or,)[^{}]*\}/gi, '')
+      .replace(/«\{[^{}]+\}»/g, '')
       .replace(/\{[^{}]+:[^{}]+\}/g, '')
+      .replace(/\{[^{}]*;\s*(?:or|Heb\.|Gr\.|Chald\.)[^{}]*\}/gi, '')
+      .replace(/\{[^{}]*\bor,\s+[^{}]*\}/gi, '')
+      .replace(/\{[^{}]*\b(?:Heb\.|Gr\.|Chald\.|Chal\.)[^{}]*\}/g, '')
+      .replace(/\{[^{}]*not found in most of the Greek copies[^{}]*\}/gi, '')
+      .replace(/\s{2,}/g, ' ')
       .trim();
 
     const tokens = verseText.split(/(\s+|[{}]|[.,;!?:()\[\]"]+)/g).filter(Boolean);

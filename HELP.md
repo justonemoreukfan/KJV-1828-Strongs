@@ -2,6 +2,9 @@
 
 This document explains the technical architecture of the backend, how the data pipelines operate, and step-by-step instructions to run, build, and deploy this application outside of the Google AI Studio container environment.
 
+- **GitHub Repository**: [https://github.com/justonemoreukfan/KJV-1828-Strongs](https://github.com/justonemoreukfan/KJV-1828-Strongs)
+- **Live Published Web Edition**: [https://kjv-bible-1828-webster-dictionary-strong-s.ai.studio/](https://kjv-bible-1828-webster-dictionary-strong-s.ai.studio/)
+
 ---
 
 ## 1. System Overview & Architecture

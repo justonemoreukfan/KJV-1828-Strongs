@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Search,
   Scroll,
@@ -13,6 +13,7 @@ import {
   ExternalLink,
   Sparkles,
   ArrowRight,
+  ArrowLeft,
   Filter,
 } from 'lucide-react';
 import {
@@ -67,6 +68,10 @@ export const StrongsView: React.FC<StrongsViewProps> = ({
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [detailTab, setDetailTab] = useState<'hebrew' | 'greek' | 'occurrences'>('hebrew');
 
+  // Mobile responsive state: when true on small screens (<md), show the detail column rather than the index list
+  const [isMobileDetailOpen, setIsMobileDetailOpen] = useState(Boolean(initialWord));
+  const detailContainerRef = useRef<HTMLDivElement>(null);
+
   // Synchronize when initialWord prop changes
   useEffect(() => {
     if (initialWord && initialWord.trim().toLowerCase() !== selectedWord.toLowerCase()) {
@@ -77,8 +82,16 @@ export const StrongsView: React.FC<StrongsViewProps> = ({
         setSelectedLetter(firstLetter);
       }
       setSearchQuery('');
+      setIsMobileDetailOpen(true);
     }
   }, [initialWord]);
+
+  // Scroll to top of detail panel when word changes or mobile detail opens
+  useEffect(() => {
+    if (isMobileDetailOpen && detailContainerRef.current) {
+      detailContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [selectedWord, isMobileDetailOpen]);
 
   // Biblical Occurrences State
   const [occurrencesWord, setOccurrencesWord] = useState<string>('abide');
@@ -232,12 +245,19 @@ export const StrongsView: React.FC<StrongsViewProps> = ({
               type="text"
               placeholder="Search English word in Strong's..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+                setIsMobileDetailOpen(false);
+              }}
               className="w-full pl-10 pr-4 py-2 bg-stone-900/90 border border-stone-700 rounded-xl text-xs sm:text-sm text-stone-100 placeholder-stone-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50"
             />
             {searchQuery && (
               <button
-                onClick={() => setSearchQuery('')}
+                onClick={() => {
+                  setSearchQuery('');
+                  setIsMobileDetailOpen(false);
+                }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-stone-400 hover:text-white"
               >
                 Clear
@@ -249,15 +269,16 @@ export const StrongsView: React.FC<StrongsViewProps> = ({
 
       {/* Alphabet Selector (when not searching) */}
       {!searchQuery && (
-        <div className="bg-[#edeae1] border-b border-stone-300/80 px-2 sm:px-6 py-2 overflow-x-auto flex items-center justify-center gap-1 scrollbar-thin">
+        <div className="bg-[#edeae1] border-b border-stone-300/80 px-2 sm:px-6 py-2 overflow-x-auto flex items-center justify-start sm:justify-center gap-1 scrollbar-thin">
           {ALPHABET.map((letter) => (
             <button
               key={letter}
               onClick={() => {
                 setSelectedLetter(letter);
                 setCurrentPage(1);
+                setIsMobileDetailOpen(false);
               }}
-              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
+              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center shrink-0 ${
                 selectedLetter === letter
                   ? 'bg-amber-800 text-white shadow-xs scale-105'
                   : 'text-stone-700 hover:bg-stone-300/60'
@@ -272,7 +293,11 @@ export const StrongsView: React.FC<StrongsViewProps> = ({
       {/* Main Split Layout: Word List on Left, Detailed Strong's Definition Card on Right */}
       <div className="flex-1 flex overflow-hidden max-w-7xl mx-auto w-full">
         {/* Left Column: English Words List */}
-        <div className="w-full md:w-80 lg:w-96 border-r border-stone-300/70 bg-white flex flex-col shrink-0">
+        <div
+          className={`${
+            isMobileDetailOpen ? 'hidden md:flex' : 'flex'
+          } w-full md:w-80 lg:w-96 border-r border-stone-300/70 bg-white flex-col shrink-0`}
+        >
           <div className="p-3 bg-stone-50 border-b border-stone-200 flex items-center justify-between text-xs text-stone-600 font-medium">
             <span>
               {searchQuery ? `Search results: ${totalCount}` : `Letter ${selectedLetter} (${totalCount} words)`}
@@ -318,8 +343,11 @@ export const StrongsView: React.FC<StrongsViewProps> = ({
                 return (
                   <button
                     key={item.word}
-                    onClick={() => setSelectedWord(item.word)}
-                    className={`w-full text-left p-3 sm:p-3.5 transition-colors cursor-pointer flex flex-col gap-1 ${
+                    onClick={() => {
+                      setSelectedWord(item.word);
+                      setIsMobileDetailOpen(true);
+                    }}
+                    className={`w-full text-left p-3 sm:p-3.5 transition-colors cursor-pointer flex flex-col gap-1 active:bg-amber-100/50 ${
                       isSelected
                         ? 'bg-amber-50/90 border-l-4 border-amber-800'
                         : 'hover:bg-stone-50'
@@ -344,6 +372,7 @@ export const StrongsView: React.FC<StrongsViewProps> = ({
                             {item.greekCount} Grk
                           </span>
                         )}
+                        <ChevronRight className="w-3.5 h-3.5 text-stone-400 md:hidden ml-1" />
                       </div>
                     </div>
 
@@ -360,7 +389,26 @@ export const StrongsView: React.FC<StrongsViewProps> = ({
         </div>
 
         {/* Right Column: Selected Word's Strong's Definition Details */}
-        <div className="hidden md:flex flex-1 flex-col bg-[#fdfbf7] overflow-y-auto">
+        <div
+          ref={detailContainerRef}
+          className={`${
+            isMobileDetailOpen ? 'flex' : 'hidden md:flex'
+          } flex-1 flex-col bg-[#fdfbf7] overflow-y-auto`}
+        >
+          {/* Mobile Back to Word Index Navigation Bar */}
+          <div className="md:hidden sticky top-0 z-20 bg-stone-900 text-stone-100 px-3.5 py-2.5 flex items-center justify-between border-b border-stone-800 shadow-xs">
+            <button
+              type="button"
+              onClick={() => setIsMobileDetailOpen(false)}
+              className="flex items-center gap-1.5 text-xs font-semibold text-amber-400 hover:text-amber-300 cursor-pointer active:scale-95 transition-transform"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Word Index</span>
+            </button>
+            <span className="text-[11px] font-mono text-stone-400 uppercase">
+              {searchQuery ? `Search: "${searchQuery}"` : `Letter ${selectedLetter}`}
+            </span>
+          </div>
           {isLoadingDetail ? (
             <div className="flex-1 flex flex-col items-center justify-center gap-3 text-stone-400">
               <Loader2 className="w-8 h-8 animate-spin text-amber-700" />
@@ -455,7 +503,7 @@ export const StrongsView: React.FC<StrongsViewProps> = ({
               </div>
 
               {/* Hebrew vs Greek vs Places in Bible Tabs */}
-              <div className="flex flex-wrap gap-2 sm:gap-3 border-b border-stone-200">
+              <div className="flex items-center gap-2 sm:gap-3 border-b border-stone-200 overflow-x-auto scrollbar-none whitespace-nowrap">
                 <button
                   onClick={() => setDetailTab('hebrew')}
                   disabled={selectedWordDetail.hebrewEntries.length === 0}

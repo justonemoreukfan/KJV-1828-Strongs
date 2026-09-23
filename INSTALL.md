@@ -2,7 +2,8 @@
 
 This guide provides comprehensive, step-by-step instructions for installing and running the Classical Bible Study Suite completely self-contained on Windows, macOS, Linux, and Docker environments.
 
-**Created Date**: September 11, 2026 • **Last Modified Date**: September 11, 2026
+- **Official GitHub Repository**: [https://github.com/justonemoreukfan/KJV-1828-Strongs](https://github.com/justonemoreukfan/KJV-1828-Strongs)
+- **Live Published Web Edition**: [https://kjv-bible-1828-webster-dictionary-strong-s.ai.studio/](https://kjv-bible-1828-webster-dictionary-strong-s.ai.studio/)
 
 > **Scope**: This project is specifically focused on the historic 1611 King James Version, Noah Webster's 1828 Dictionary, and Strong's Concordance. It is provided as-is for personal Bible study.
 

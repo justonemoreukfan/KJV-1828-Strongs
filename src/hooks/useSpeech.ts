@@ -12,13 +12,19 @@ export interface SpeechState {
   pitch: number;
 }
 
-export function useSpeech(defaultRate = 1.0, defaultPitch = 1.0, defaultIncludeVerseNumber = true) {
+export function useSpeech(
+  defaultRate = 1.0,
+  defaultPitch = 1.0,
+  defaultIncludeVerseNumber = true,
+  savedVoiceIdentifier = '',
+  onVoicePersist?: (voiceId: string) => void
+) {
   const [isSupported, setIsSupported] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [currentVerse, setCurrentVerse] = useState<number | null>(null);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
+  const [selectedVoice, setSelectedVoiceState] = useState<SpeechSynthesisVoice | null>(null);
   const [rate, setRate] = useState(defaultRate);
   const [pitch, setPitch] = useState(defaultPitch);
   const [includeVerseNumber, setIncludeVerseNumber] = useState(defaultIncludeVerseNumber);
@@ -29,26 +35,91 @@ export function useSpeech(defaultRate = 1.0, defaultPitch = 1.0, defaultIncludeV
   const isCancelledRef = useRef<boolean>(false);
   const includeVerseNumberRef = useRef<boolean>(defaultIncludeVerseNumber);
 
-  // Keep ref synchronized
+  // Keep references synchronized to avoid stale closures in event listeners
+  const selectedVoiceRef = useRef<SpeechSynthesisVoice | null>(null);
+  const savedVoiceIdentifierRef = useRef<string>(savedVoiceIdentifier);
+
   useEffect(() => {
     includeVerseNumberRef.current = includeVerseNumber;
   }, [includeVerseNumber]);
 
-  // Load voices
+  useEffect(() => {
+    savedVoiceIdentifierRef.current = savedVoiceIdentifier;
+  }, [savedVoiceIdentifier]);
+
+  // Resolves a fresh SpeechSynthesisVoice instance from getVoices()
+  // to avoid dead/stale voice references on Android Chrome
+  const resolveFreshVoice = useCallback((target: SpeechSynthesisVoice | null): SpeechSynthesisVoice | null => {
+    if (!target || typeof window === 'undefined' || !('speechSynthesis' in window)) return target;
+    const available = window.speechSynthesis.getVoices();
+    if (!available || available.length === 0) return target;
+
+    return (
+      available.find((v) => target.voiceURI && v.voiceURI === target.voiceURI) ||
+      available.find((v) => v.name === target.name && v.lang === target.lang) ||
+      available.find((v) => v.name === target.name) ||
+      target
+    );
+  }, []);
+
+  const selectVoice = useCallback(
+    (voice: SpeechSynthesisVoice | null) => {
+      selectedVoiceRef.current = voice;
+      setSelectedVoiceState(voice);
+      if (voice) {
+        const id = voice.voiceURI || voice.name;
+        if (onVoicePersist) {
+          onVoicePersist(id);
+        }
+      }
+    },
+    [onVoicePersist]
+  );
+
+  // Load and synchronize voices
   useEffect(() => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       setIsSupported(true);
 
       const updateVoices = () => {
         const available = window.speechSynthesis.getVoices();
+        if (!available || available.length === 0) return;
+
         setVoices(available);
-        if (available.length > 0 && !selectedVoice) {
-          // Find an English voice preferrably natural/neural
+
+        // Check if we can match an already chosen voice or previously saved voice identifier
+        const targetId =
+          selectedVoiceRef.current?.voiceURI ||
+          selectedVoiceRef.current?.name ||
+          savedVoiceIdentifierRef.current;
+
+        let matched: SpeechSynthesisVoice | undefined;
+        if (targetId) {
+          matched =
+            available.find((v) => v.voiceURI === targetId) ||
+            available.find((v) => v.name === targetId);
+        }
+
+        if (matched) {
+          selectedVoiceRef.current = matched;
+          setSelectedVoiceState(matched);
+        } else if (!selectedVoiceRef.current) {
+          // If no voice is yet selected, pick a natural English voice if available
           const preferred =
-            available.find((v) => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Neural') || v.name.includes('Google') || v.name.includes('Daniel') || v.name.includes('Samantha'))) ||
+            available.find(
+              (v) =>
+                v.lang.startsWith('en') &&
+                (v.name.includes('Natural') ||
+                  v.name.includes('Neural') ||
+                  v.name.includes('Google') ||
+                  v.name.includes('Daniel') ||
+                  v.name.includes('Samantha'))
+            ) ||
             available.find((v) => v.lang.startsWith('en')) ||
             available[0];
-          setSelectedVoice(preferred || null);
+
+          selectedVoiceRef.current = preferred || null;
+          setSelectedVoiceState(preferred || null);
         }
       };
 
@@ -100,9 +171,18 @@ export function useSpeech(defaultRate = 1.0, defaultPitch = 1.0, defaultIncludeV
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
     utteranceRef.current = utterance;
 
-    if (selectedVoice) {
-      utterance.voice = selectedVoice;
+    // Resolve current active voice ensuring fresh object reference
+    const activeVoice = resolveFreshVoice(selectedVoiceRef.current);
+    if (activeVoice) {
+      utterance.voice = activeVoice;
+      // CRITICAL FOR ANDROID:
+      // Android Text-to-Speech ignores utterance.voice unless utterance.lang is explicitly set!
+      // Format with BCP-47 standard hyphens (e.g., replace en_US with en-US).
+      if (activeVoice.lang) {
+        utterance.lang = activeVoice.lang.replace(/_/g, '-');
+      }
     }
+
     utterance.rate = rate;
     utterance.pitch = pitch;
 
@@ -132,8 +212,12 @@ export function useSpeech(defaultRate = 1.0, defaultPitch = 1.0, defaultIncludeV
       }
     };
 
+    // On Android Chrome, resume if audio context is in a paused state before speak
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+    }
     window.speechSynthesis.speak(utterance);
-  }, [rate, pitch, selectedVoice]);
+  }, [rate, pitch, resolveFreshVoice]);
 
   const playVerses = useCallback(
     (verses: BibleVerse[], startVerseNumber = 1) => {
@@ -149,7 +233,7 @@ export function useSpeech(defaultRate = 1.0, defaultPitch = 1.0, defaultIncludeV
       setIsPlaying(true);
       setIsPaused(false);
 
-      // Delay a tiny bit to avoid speech synthesis cancel race
+      // Small delay to allow audio subsystem cleanup
       setTimeout(() => {
         if (!isCancelledRef.current) {
           speakCurrentIndex();
@@ -172,8 +256,12 @@ export function useSpeech(defaultRate = 1.0, defaultPitch = 1.0, defaultIncludeV
       const utterance = new SpeechSynthesisUtterance(text);
       utteranceRef.current = utterance;
 
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
+      const activeVoice = resolveFreshVoice(selectedVoiceRef.current);
+      if (activeVoice) {
+        utterance.voice = activeVoice;
+        if (activeVoice.lang) {
+          utterance.lang = activeVoice.lang.replace(/_/g, '-');
+        }
       }
       utterance.rate = rate;
       utterance.pitch = pitch;
@@ -190,9 +278,12 @@ export function useSpeech(defaultRate = 1.0, defaultPitch = 1.0, defaultIncludeV
         setIsPlaying(false);
       };
 
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
       window.speechSynthesis.speak(utterance);
     },
-    [selectedVoice, rate, pitch, stop]
+    [resolveFreshVoice, rate, pitch, stop]
   );
 
   const pause = useCallback(() => {
@@ -237,7 +328,7 @@ export function useSpeech(defaultRate = 1.0, defaultPitch = 1.0, defaultIncludeV
     rate,
     pitch,
     includeVerseNumber,
-    setSelectedVoice,
+    setSelectedVoice: selectVoice,
     setRate,
     setPitch,
     setIncludeVerseNumber,
