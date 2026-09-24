@@ -99,13 +99,38 @@ export const WordDefinitionDrawer: React.FC<WordDefinitionDrawerProps> = ({
                   "{lookupResult?.query}" not found directly
                 </h3>
                 <p className="text-xs text-stone-500 mt-1 max-w-xs mx-auto">
-                  Try one of these closely matching entries from the 1828 dictionary:
+                  {lookupResult?.strongsMatch?.exists
+                    ? `This term has no separate entry in Webster's 1828 English dictionary, but is indexed in Strong's Concordance (${lookupResult.bibleOccurrencesCount || 0} Bible occurrences).`
+                    : 'Try one of these closely matching entries from the 1828 dictionary:'}
                 </p>
               </div>
+
+              {/* Direct Strong's Concordance option if available */}
+              {onOpenStrongs && lookupResult?.strongsMatch?.exists && (
+                <div className="p-4 bg-amber-50/80 border border-amber-200/80 rounded-xl text-left space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-amber-900 uppercase tracking-wider">
+                    <Scroll className="w-4 h-4 text-amber-700" />
+                    <span>Strong's Concordance Available</span>
+                  </div>
+                  <p className="text-xs text-stone-600">
+                    Explore original Hebrew or Greek definitions and verse cross-references for <strong>"{lookupResult.strongsMatch.matchedWord || lookupResult.query}"</strong>.
+                  </p>
+                  <button
+                    onClick={() => onOpenStrongs(lookupResult.strongsMatch?.matchedWord || lookupResult.query)}
+                    className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                  >
+                    <Scroll className="w-3.5 h-3.5" />
+                    <span>Open in Strong's Concordance</span>
+                  </button>
+                </div>
+              )}
 
               {/* Suggestions */}
               {lookupResult?.suggestions && lookupResult.suggestions.length > 0 && (
                 <div className="grid gap-2 text-left pt-2">
+                  <div className="text-xs font-semibold text-stone-600 px-1">
+                    Related 1828 Headwords:
+                  </div>
                   {lookupResult.suggestions.map((s) => (
                     <button
                       key={s.word}
@@ -133,7 +158,7 @@ export const WordDefinitionDrawer: React.FC<WordDefinitionDrawerProps> = ({
                 <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-100/60 border border-amber-300/60 rounded-lg text-xs text-amber-900">
                   <Sparkles className="w-3.5 h-3.5 shrink-0 text-amber-700" />
                   <span>
-                    Linked from Biblical text <strong>"{lookupResult.query}"</strong> to root entry <strong>"{entry.word}"</strong>
+                    Linked from Biblical text <strong>"{lookupResult.query}"</strong> to singular / root entry <strong>"{entry.word}"</strong>
                   </span>
                 </div>
               )}

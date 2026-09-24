@@ -26,10 +26,10 @@ This application is a **full-stack unified TypeScript application** combining a 
 │    (Dev Mode: HMR & assets)  │     & Cross-Ref Engine       │
 ├──────────────────────────────┴──────────────────────────────┤
 │                     Core Services                           │
-│  ├── bibleService.ts       (KJV 31,102 verses parser)       │
-│  ├── dictionaryService.ts  (Webster 1828 indexer)           │
-│  ├── strongsService.ts     (Hebrew & Greek root matcher)    │
-│  └── bibleMetadata.ts      (Canon ordering & abbreviations) │
+│  ├── bibleService.ts       (KJV 31,102 verses parser & italics engine)    │
+│  ├── dictionaryService.ts  (Webster 1828 indexer, lemmatizer & phonetics) │
+│  ├── strongsService.ts     (Hebrew & Greek root matcher)                  │
+│  └── bibleMetadata.ts      (Canon ordering & abbreviations)               │
 └──────────────────────────────┬──────────────────────────────┘
                                │ Reads JSON datasets on boot
                                ▼
@@ -45,7 +45,9 @@ This application is a **full-stack unified TypeScript application** combining a 
 ### Why It Uses In-Memory Indexing
 - **Zero External Database Overhead**: No PostgreSQL, MongoDB, or Redis required.
 - **Microsecond Latency**: Lookups for definitions, Hebrew/Greek lemmas, and verse concordance occurrences complete in under 5 milliseconds.
-- **Cross-Dataset Dynamic Verification**: When you look up a word in Webster 1828, the backend instantly cross-checks Strong's Hebrew and Greek indices to verify if original manuscript roots exist before returning data to the client.
+- **Morphological Lemmatization**: Intelligent inflection mapping resolves biblical plurals, past tenses, and participles (e.g., `snares` $\rightarrow$ `snare`, `created` $\rightarrow$ `create`, `shined` $\rightarrow$ `shine`) to true singular and base headwords.
+- **Clean Phonetic Respellings**: Pronunciation extraction is strictly scoped to entry headers, preserving authentic 1828 phonetic respellings (`a'bl`, `abolishun`, `Ile`, `dout`) without bleeding definition body words.
+- **Cross-Dataset Dynamic Verification**: When you look up a word in Webster 1828, the backend instantly cross-checks Strong's Hebrew and Greek indices to verify if original manuscript roots exist before returning data to the client. If a word is an unmapped biblical proper name (`David`, `Solomon`), it links directly into Strong's Concordance.
 
 ---
 
@@ -268,7 +270,7 @@ All API routes return JSON and support standard HTTP GET requests:
 | `GET /api/bible/books` | None | Returns metadata for all 66 books (name, testament, genre, chapters) |
 | `GET /api/bible/chapter` | `book` (e.g. `gn`, `jn`), `chapter` (e.g. `1`) | Returns chapter verses, headers, and translator italics markers |
 | `GET /api/bible/search` | `q` (query), `testament` (`ALL`, `OT`, `NT`), `limit` | Full-text Concordance search across 31,102 verses |
-| `GET /api/dictionary/lookup` | `word` (e.g. `charity`) | Looks up Webster 1828 definition, cross-checks Strong's existence, and counts Bible occurrences |
+| `GET /api/dictionary/lookup` | `word` (e.g. `snares`, `charity`) | Looks up Webster 1828 definition with morphological lemmatization, pristine phonetic respelling, Strong's concordance validation, and King James occurrence counts |
 | `GET /api/dictionary/search` | `q`, `limit` | Autocomplete & quick search for 1828 headwords |
 | `GET /api/dictionary/index` | `letter` (A–Z), `page`, `limit`, `q` | Paginated alphabetical index for browsing the dictionary |
 | `GET /api/dictionary/word/:word` | Path param `:word` | Direct entry definition query |

@@ -1,7 +1,7 @@
 # Classical Bible Study Suite — Technical Specification (SPEC.md)
 
-**Document Version**: 1.1.0  
-**Last Updated**: September 22, 2026  
+**Document Version**: 1.3.0  
+**Last Updated**: September 23, 2026  
 **Status**: Living Architecture & Engineering Specification  
 **GitHub Repository**: [https://github.com/justonemoreukfan/KJV-1828-Strongs](https://github.com/justonemoreukfan/KJV-1828-Strongs)  
 **Live Published Web Edition**: [https://kjv-bible-1828-webster-dictionary-strong-s.ai.studio/](https://kjv-bible-1828-webster-dictionary-strong-s.ai.studio/)
@@ -126,6 +126,50 @@ On desktop displays, `StrongsView.tsx` renders a dual-pane split layout: the A-Z
   - Tapping any word in the index triggers `setSelectedWord(item.word)`, sets `isMobileDetailOpen(true)`, and scrolls the detail pane to top.
   - Changing search query or tapping alphabet index buttons automatically returns to the word index view (`setIsMobileDetailOpen(false)`).
 
+### 4.4 Lemmatization & Morphological Root Mapping Engine (Issue #6 Fix)
+
+#### The Problem:
+Biblical inflections in Scripture (e.g. `snares` in Proverbs 22:5, `created`, `shined`, `thorns`) must map to their root dictionary headwords. An earlier naive suffix-stripper tested `w.slice(0, -2)` (`snar`) before `w.slice(0, -1)` (`snare`). Because `snar` was an obsolete headword in Webster 1828 (*"SN'AR, v.i. To snarl"*), `snares` was erroneously mapped to `snar` instead of `snare`. Furthermore, 3-letter proper biblical names like `Zer` or `Ner` were stripping `-er` down to 1-letter invalid stems.
+
+#### The Authoritative Specification:
+The lemmatizer in `server/dictionaryService.ts` (`generateLemmas`) enforces English morphological phonology:
+1. **Plurals in `-es`**:
+   - Words ending in sibilant stems (`-ch`, `-sh`, `-ss`, `-x`, `-z`): strip `-es` (e.g., `branches` $\rightarrow$ `branch`, `churches` $\rightarrow$ `church`, `boxes` $\rightarrow$ `box`, `glasses` $\rightarrow$ `glass`).
+   - All non-sibilant words ending in `-es`: prioritize stripping `-s` first (e.g., `snares` $\rightarrow$ `snare`, `robes` $\rightarrow$ `robe`, `gates` $\rightarrow$ `gate`, `trees` $\rightarrow$ `tree`, `eyes` $\rightarrow$ `eye`, `flames` $\rightarrow$ `flame`, `cares` $\rightarrow$ `care`, `uses` $\rightarrow$ `use`).
+2. **Past Tense and Participles in `-ed`**:
+   - Prioritize verbs ending in silent -e: strip `-d` first (`created` $\rightarrow$ `create`, `snared` $\rightarrow$ `snare`, `hated` $\rightarrow$ `hate`, `hoped` $\rightarrow$ `hope`, `cared` $\rightarrow$ `care`, `shined` $\rightarrow$ `shine`).
+   - Handle doubled consonants (`sinned` $\rightarrow$ `sin`, `stopped` $\rightarrow$ `stop`).
+   - Strip `-ed` for base verbs (`walked` $\rightarrow$ `walk`, `severed` $\rightarrow$ `sever`, `mourned` $\rightarrow$ `mourn`).
+3. **Present Participles in `-ing`**:
+   - Prioritize verbs ending in silent -e (`coming` $\rightarrow$ `come`, `writing` $\rightarrow$ `write`, `hoping` $\rightarrow$ `hope`, `using` $\rightarrow$ `use`, `snaring` $\rightarrow$ `snare`).
+   - Handle doubled consonants (`running` $\rightarrow$ `run`, `begging` $\rightarrow$ `beg`).
+4. **Stem Length Protection**:
+   - Candidates shorter than 2 characters (e.g. `Zer` $\rightarrow$ `z`) are strictly rejected.
+5. **Proper Noun Transparency**:
+   - When a word has no direct English 1828 definition (such as biblical proper names `David`, `Solomon`), the drawer provides transparent fallback linking directly to Strong's Concordance Hebrew/Greek entries and Scripture occurrences.
+
+### 4.5 Webster 1828 Pronunciation Parsing Specification (Issue #7 Fix)
+
+#### The Problem:
+Early versions parsed pronunciation using `/<\/i>\s+([a-zA-Z'’\-]+)[\.,]/` across the entire entry HTML content. Because italic tags `<i>...</i>` are frequently used throughout definitions for cross-references, emphasis, and biblical quotes, the regex captured whatever arbitrary word followed the italic tag (e.g. `chosen` captured `generation` from `<p>Ye are a <i>chosen</i> generation...</p>`, `good` captured `claim`, `to` captured `from`, `be` captured `substantive`).
+
+#### The Authoritative Specification:
+The extractor in `server/dictionaryService.ts` (`extractPronunciation`) restricts extraction exclusively to the **entry header paragraph** (`<p><b>WORD</b>, <i>pos</i> ...</p>`):
+1. **Header-Only Boundary**:
+   - Only the first `<p>...</p>` is evaluated; definition body paragraphs, examples, and scripture citations are strictly ignored.
+2. **Explicit Pronunciation Markers**:
+   - Matches `Pronounced <word>` or `pron. <word>` (e.g. `aisle` $\rightarrow$ `"Ile"`).
+   - Matches bracketed pronunciations: `[pron. ...]` or `[Fr. pron. ...]`.
+3. **Phonetic Respellings Following Part of Speech**:
+   - Matches lowercase phonetic respellings immediately following `<p><b>WORD</b>, <i>pos</i>...`:
+     - Accented respellings containing Webster stress apostrophes: `a'bl`, `abolishun`, `abra'zhun`, `abrawd'`, `agenst'`.
+     - Silent-letter reformed spellings with phonetic letter matching: `doubt` $\rightarrow$ `"dout"`, `feign` $\rightarrow$ `"fane"`, `guard` $\rightarrow$ `"gard"`, `gnome` $\rightarrow$ `"nome"`, `bright` $\rightarrow$ `"brite"`, `bread` $\rightarrow$ `"bred"`.
+4. **Metadata & Definition Exclusion Filters**:
+   - Excludes grammatical designations: `substantive`, `superlative`, `comparative`, `singular`, `plural`, `plur`, `preterit`.
+   - Excludes one-word synonym definitions (`fitness`, `atheism`).
+5. **Absence of Phonetic Respelling**:
+   - Standard English words lacking a separate phonetic respelling in Webster 1828 (e.g., `chosen`, `be`, `to`, `good`) return an empty string (`""`), suppressing the `Pronunciation:` element from rendering in the UI.
+
 ---
 
 ## 5. Storage & Persistence Specification
@@ -148,6 +192,10 @@ Prior to releasing updates or commits, verify:
 - [ ] **Proverbs 14:17**: Begins with *"He that is soon angry dealeth foolishly..."*
 - [ ] **Proverbs 14:29**: Begins with *"He that is slow to wrath is of great understanding..."*
 - [ ] **Proverbs 16:32**: Begins with *"He that is slow to anger is better than the mighty..."*
+- [ ] **Proverbs 22:5 (Issue #6)**: Word `snares` maps to singular root `snare` (not obsolete `snar`).
+- [ ] **Lemmatization (Issue #6)**: `created` maps to `create`, `shined` to `shine`, `robes` to `robe`, `thorns` to `thorn`.
+- [ ] **Pronunciation (Issue #7)**: `chosen`, `be`, `to`, `good` have empty pronunciation fields (no definition text leakage).
+- [ ] **Pronunciation (Issue #7)**: `able` yields `"a'bl"`, `abolition` yields `"abolishun"`, `aisle` yields `"Ile"`, `doubt` yields `"dout"`.
 - [ ] **Supplied Italics**: Run `tsc --noEmit` and check that supplied word brackets `{...}` render with italic styling across all books.
 - [ ] **Marginal Notes**: Ensure no leaked colons or tags appear in `cleanText` or audio playback.
 - [ ] **Speech Synthesis**: Verify voice changes take effect on Android Chrome and voice selections persist after refresh.

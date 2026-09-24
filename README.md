@@ -120,11 +120,12 @@ docker run -d -p 3000:3000 --name bible-suite bible-study-suite
 ## Key Features
 
 - 📖 **Authorized 1611 King James Bible**: All 66 books, preserving original translator italics, chapter summaries, and verse navigation.
-- 📚 **Noah Webster's 1828 Dictionary**: The complete historic 1828 dictionary with authentic Christian definitions and Scripture cross-references.
+- 📚 **Noah Webster's 1828 Dictionary**: Complete historic 1828 dictionary with authentic Christian definitions and Scripture cross-references.
 - 📜 **Strong's Exhaustive Concordance**: Complete Old Testament Hebrew (H1–H8674) and New Testament Greek (G1–G5624) lexicons with original scripts, pronunciation guides, and translation breakdowns.
-- 🔗 **Interactive One-Click Word Study**: Click any English word in Scripture to immediately view its 1828 definition and original Hebrew/Greek root words.
-- 🪟 **Side-by-Side Dual Pane**: Read Scripture on the left while searching definitions or root lemmas on the right.
-- 🔊 **Built-in Narration**: Listen to chapter verses read aloud using your browser's native speech engine (no third-party cloud speech subscriptions required).
+- 🔗 **Intelligent Morphological Lemmatization**: Biblical inflections (plurals, archaic verb forms, participles) map accurately to singular and root headwords (e.g., `snares` $\rightarrow$ `snare`, `thorns` $\rightarrow$ `thorn`, `created` $\rightarrow$ `create`, `doth` $\rightarrow$ `do`), while unmapped proper names (e.g., `David`, `Solomon`) link directly to Strong's Concordance.
+- 🗣️ **Authentic 1828 Pronunciation Engine**: Accurately extracts historical phonetic respellings and accent markers (`a'bl`, `abolishun`, `Ile`, `dout`) from entry headers without bleeding definition sentences into the pronunciation field.
+- 🪟 **Side-by-Side Dual Pane & Responsive Mobile Views**: Split-pane study on desktop; full-width interactive view with dedicated back navigation on smartphones and tablets.
+- 🔊 **Built-in Narration with Android Compatibility**: Listen to chapter verses read aloud using your browser's native speech engine, with full BCP-47 tag and dynamic voice resolution support for Android Chrome.
 - 🔍 **Fast Concordance Search**: Search all 31,102 verses in under 10 milliseconds with Old Testament / New Testament filters.
 - 🔖 **Local Study Notebook**: Bookmark verses, save word studies, and track reading history with instant local persistence.
 
@@ -136,7 +137,8 @@ For more detailed guides, check out the specialized guides in this repository:
 
 - 📋 **[INSTALL.md](./INSTALL.md)**: In-depth installation instructions for Windows, macOS, Linux, Raspberry Pi, Docker, and Bun, plus tips on making a one-click desktop shortcut.
 - 🛠️ **[HELP.md](./HELP.md)**: Full technical documentation covering server architecture, memory management, and REST API endpoint specifications.
-- 📐 **[SPEC.md](./SPEC.md)**: Comprehensive architectural specification, corpus parsing rules (preserving supplied italics and marginal note syntax), and Web Speech cross-platform guidelines.
+- 📐 **[SPEC.md](./SPEC.md)**: Comprehensive architectural specification, corpus parsing rules (preserving supplied italics and marginal note syntax), lemmatization logic, and Web Speech cross-platform guidelines.
+- 🔄 **[KJV Normalization & Rollback Guide](./docs/KJV_NORMALIZATION_ROLLBACK_GUIDE.md)**: Technical breakdown of archaic KJV orthography mapping, lemmatization architecture, pronunciation extraction, and zero-risk rollback switches.
 
 ---
 
